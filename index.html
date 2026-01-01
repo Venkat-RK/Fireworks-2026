@@ -45,8 +45,6 @@
             background: rgba(0, 0, 0, 0.6);
             padding: 15px;
             border-radius: 8px;
-            max-height: calc(100vh - 20px);
-            overflow-y: auto;
             width: 320px;
             z-index: 3;
         }
@@ -123,7 +121,8 @@
 
         .controls-content {
             max-height: 70vh;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
             transition: max-height 0.4s ease-in-out, visibility 0.4s;
             visibility: visible;
         }
@@ -131,6 +130,37 @@
         .controls.collapsed .controls-content {
             max-height: 0;
             visibility: hidden;
+        }
+
+        /* Media Queries for Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .controls {
+                width: 100%;
+                top: 0;
+                right: 0;
+                left: 0;
+                padding: 10px;
+                border-radius: 0;
+            }
+
+            .controls-content {
+                max-height: 80vh;
+            }
+
+            .background-text {
+                font-size: 15vw; /* Adjust font size for mobile */
+                top: 60%; /* Move it down a bit to account for controls at the top */
+                transform: translate(-50%, -50%); /* Ensure it stays centered horizontally */
+            }
+
+            /* Adjust toggle button rotation for mobile (panel collapses downwards) */
+            #toggle-controls-btn {
+                transform: rotate(-90deg); /* Points up when expanded */
+            }
+
+            .controls.collapsed #toggle-controls-btn {
+                transform: rotate(90deg); /* Points down when collapsed */
+            }
         }
     </style>
 </head>
