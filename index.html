@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fireworks.js Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: white;
+        }
+        .background-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            transform: translate(-50%, -50%);
+            font-family: 'Great Vibes', cursive;
+            font-size: 10vw;
+            background-image: linear-gradient(to right, violet, indigo, blue, green, yellow, orange, red);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent; /* Make text transparent to show background image */
+            text-align: center;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+        .controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+            width: 320px;
+            z-index: 3;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        .control-group h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        .range-value {
+            font-size: 12px;
+            opacity: 0.8;
+            text-align: right;
+        }
+        .button-group button {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background-color 0.2s;
+        }
+        .button-group button:hover {
+            background-color: #444;
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+            margin-bottom: 10px;
+        }
+
+        .controls-header h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        #toggle-controls-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            line-height: 1;
+            padding: 0;
+            cursor: pointer;
+            transform: rotate(90deg);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .controls.collapsed #toggle-controls-btn {
+            transform: rotate(0deg);
+        }
+
+        .controls-content {
+            max-height: 70vh;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, visibility 0.4s;
+            visibility: visible;
+        }
+
+        .controls.collapsed .controls-content {
+            max-height: 0;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-text">Happy New Year<br>2026</div>
+    <div id="fireworks-container"></div>
+
+    <div class="controls">
+        <div class="controls-header">
+            <h4>Controls</h4>
+            <button id="toggle-controls-btn">‹</button>
+        </div>
+        <div class="controls-content">
+            <div class="control-group button-group">
+                <button id="start">Start</button>
+                <button id="stop">Stop</button>
+                <button id="clear">Clear</button>
+                <button id="launch">Launch 1</button>
+            </div>
+
+            <div class="control-group">
+                <h3>Mouse</h3>
+                <label><input type="checkbox" id="mouse-click"> Click to launch</label>
+                <label><input type="checkbox" id="mouse-move"> Launch on move</label>
+            </div>
+
+            <div class="control-group">
+                <h3>General</h3>
+                <label for="intensity">Intensity: <span class="range-value" id="intensity-val">30</span></label>
+                <input type="range" id="intensity" min="1" max="100" value="30">
+
+                <label for="particles">Particles: <span class="range-value" id="particles-val">50</span></label>
+                <input type="range" id="particles" min="1" max="200" value="50">
+
+                <label for="explosion">Explosion Power: <span class="range-value" id="explosion-val">5</span></label>
+                <input type="range" id="explosion" min="1" max="15" value="5">
+
+                 <label for="flickering">Flickering: <span class="range-value" id="flickering-val">50</span></label>
+                <input type="range" id="flickering" min="0" max="100" value="50">
+            </div>
+
+            <div class="control-group">
+                <h3>Movement</h3>
+                <label for="speed">Speed: <span class="range-value" id="speed-val">2</span></label>
+                <input type="range" id="speed" min="0.5" max="5" step="0.1" value="2">
+
+                <label for="acceleration">Acceleration: <span class="range-value" id="acceleration-val">1.05</span></label>
+                <input type="range" id="acceleration" min="1" max="1.2" step="0.01" value="1.05">
+
+                <label for="friction">Friction: <span class="range-value" id="friction-val">0.97</span></label>
+                <input type="range" id="friction" min="0.9" max="1" step="0.01" value="0.97">
+
+                <label for="gravity">Gravity: <span class="range-value" id="gravity-val">1.5</span></label>
+                <input type="range" id="gravity" min="0" max="5" step="0.1" value="1.5">
+            </div>
+
+            <div class="control-group">
+                <h3>Appearance</h3>
+                <label for="opacity">Opacity: <span class="range-value" id="opacity-val">0.5</span></label>
+                <input type="range" id="opacity" min="0" max="1" step="0.05" value="0.5">
+
+                <label for="hue-min">Hue Min: <span class="range-value" id="hue-min-val">0</span></label>
+                <input type="range" id="hue-min" min="0" max="360" value="0">
+                <label for="hue-max">Hue Max: <span class="range-value" id="hue-max-val">360</span></label>
+                <input type="range" id="hue-max" min="0" max="360" value="360">
+
+                <label for="brightness-min">Brightness Min: <span class="range-value" id="brightness-min-val">50</span></label>
+                <input type="range" id="brightness-min" min="0" max="100" value="50">
+                 <label for="brightness-max">Brightness Max: <span class="range-value" id="brightness-max-val">80</span></label>
+                <input type="range" id="brightness-max" min="0" max="100" value="80">
+
+                <label for="decay-min">Decay Min: <span class="range-value" id="decay-min-val">0.015</span></label>
+                <input type="range" id="decay-min" min="0.005" max="0.05" step="0.001" value="0.015">
+                <label for="decay-max">Decay Max: <span class="range-value" id="decay-max-val">0.03</span></label>
+                <input type="range" id="decay-max" min="0.005" max="0.05" step="0.001" value="0.03">
+            </div>
+             <div class="control-group">
+                <h3>Trace</h3>
+                <label for="traceLength">Trace Length: <span class="range-value" id="traceLength-val">3</span></label>
+                <input type="range" id="traceLength" min="1" max="10" value="3">
+                 <label for="traceSpeed">Trace Speed: <span class="range-value" id="traceSpeed-val">10</span></label>
+                <input type="range" id="traceSpeed" min="1" max="30" value="10">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2.x/dist/index.umd.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('fireworks-container');
+            const fireworks = new Fireworks.default(container, {
+                autoresize: true,
+                opacity: 0.5,
+                acceleration: 1.05,
+                friction: 0.97,
+                gravity: 1.5,
+                particles: 50,
+                traceLength: 3,
+                traceSpeed: 10,
+                explosion: 5,
+                intensity: 30,
+                flickering: 50,
+                lineStyle: 'round',
+                hue: { min: 0, max: 360 },
+                delay: { min: 30, max: 60 },
+                rocketsPoint: { min: 50, max: 50 },
+                lineWidth: {
+                    explosion: { min: 1, max: 3 },
+                    trace: { min: 1, max: 2 }
+                },
+                brightness: { min: 50, max: 80 },
+                decay: { min: 0.015, max: 0.03 },
+                mouse: { click: false, move: false, max: 1 }
+            });
+
+            fireworks.start();
+
+            const controlsContainer = document.querySelector('.controls');
+            const toggleBtn = document.getElementById('toggle-controls-btn');
+            const controlsHeader = document.querySelector('.controls-header');
+
+            // Collapse by default
+            controlsContainer.classList.add('collapsed');
+            toggleBtn.textContent = '›';
+
+            controlsHeader.addEventListener('click', () => {
+                controlsContainer.classList.toggle('collapsed');
+                if (controlsContainer.classList.contains('collapsed')) {
+                    toggleBtn.textContent = '›';
+                } else {
+                    toggleBtn.textContent = '‹';
+                }
+            });
+
+            // --- Button Controls ---
+            document.getElementById('start').addEventListener('click', () => fireworks.start());
+            document.getElementById('stop').addEventListener('click', () => fireworks.stop());
+            document.getElementById('clear').addEventListener('click', () => fireworks.clear());
+            document.getElementById('launch').addEventListener('click', () => fireworks.launch(1));
+
+
+            // --- UI Input Handlers ---
+            const controlsMapping = {
+                'intensity': { value: 'intensity' },
+                'particles': { value: 'particles' },
+                'explosion': { value: 'explosion' },
+                'flickering': { value: 'flickering' },
+                'speed': { value: 'speed', target: 'traceSpeed' }, // Note: Library uses traceSpeed
+                'acceleration': { value: 'acceleration' },
+                'friction': { value: 'friction' },
+                'gravity': { value: 'gravity' },
+                'opacity': { value: 'opacity' },
+                'traceLength': { value: 'traceLength' },
+                'traceSpeed': { value: 'traceSpeed' },
+                'hue-min': { object: 'hue', property: 'min' },
+                'hue-max': { object: 'hue', property: 'max' },
+                'brightness-min': { object: 'brightness', property: 'min' },
+                'brightness-max': { object: 'brightness', property: 'max' },
+                'decay-min': { object: 'decay', property: 'min' },
+                'decay-max': { object: 'decay', property: 'max' },
+                'mouse-click': { object: 'mouse', property: 'click', type: 'checkbox' },
+                'mouse-move': { object: 'mouse', property: 'move', type: 'checkbox' },
+            };
+
+            Object.keys(controlsMapping).forEach(id => {
+                const el = document.getElementById(id);
+                const mapping = controlsMapping[id];
+                const eventType = (el.type === 'range' || el.type === 'checkbox') ? 'input' : 'change';
+
+                el.addEventListener(eventType, (e) => {
+                    const value = mapping.type === 'checkbox' ? e.target.checked : parseFloat(e.target.value);
+                    const updatePayload = {};
+
+                    if (mapping.value) {
+                         const targetProp = mapping.target || mapping.value;
+                         updatePayload[targetProp] = value;
+                    } else if (mapping.object) {
+                        updatePayload[mapping.object] = {
+                            ...fireworks.currentOptions[mapping.object],
+                            [mapping.property]: value
+                        };
+                    }
+                    
+                    // Ensure min is not greater than max for ranged objects
+                    if (mapping.property === 'min') {
+                        const maxProp = mapping.object + '-max';
+                        const maxEl = document.getElementById(maxProp);
+                        if(maxEl && value > parseFloat(maxEl.value)) {
+                           maxEl.value = value;
+                           updatePayload[mapping.object].max = value;
+                           document.getElementById(maxProp + '-val').textContent = value;
+                        }
+                    }
+                     if (mapping.property === 'max') {
+                        const minProp = mapping.object + '-min';
+                        const minEl = document.getElementById(minProp);
+                         if(minEl && value < parseFloat(minEl.value)) {
+                           minEl.value = value;
+                           updatePayload[mapping.object].min = value;
+                           document.getElementById(minProp + '-val').textContent = value;
+                        }
+                    }
+
+
+                    fireworks.updateOptions(updatePayload);
+
+                    // Update display value if it exists
+                    const valDisplay = document.getElementById(id + '-val');
+                    if (valDisplay) {
+                        valDisplay.textContent = e.target.value;
+                    }
+                });
+            });
+             // Special handling for speed as it's not a direct option
+            document.getElementById('speed').addEventListener('input', (e) => {
+                const speed = parseFloat(e.target.value);
+                 document.getElementById('speed-val').textContent = speed;
+                // Speed isn't a direct property, but we can simulate it by adjusting acceleration/friction
+                // This is an approximation. For this demo, we adjust acceleration.
+                const newAcceleration = 1.0 + (speed / 100); // Simple mapping
+                fireworks.updateOptions({ acceleration: newAcceleration });
+                 document.getElementById('acceleration-val').textContent = newAcceleration.toFixed(2);
+                 document.getElementById('acceleration').value = newAcceleration;
+            });
+        });
+    </script>
+
+</body>
+</html>
